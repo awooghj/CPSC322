@@ -8,17 +8,17 @@ class Q2b {
 
 
 
-    //设置全局列表存储最后的结果
-    public static int a;
+    //global variable for saving the number of failing branches
+    public static int failing;
 
 
 
     public static void main(String[] args) {
         List<String> list = new ArrayList<>();
-        letterCombinations("FHGEDCAB", list);
+        letterCombinations("FHGDCEAB", list);
         System.out.println(list.toString());
         System.out.println(list.size());
-        System.out.println(Q2b.a);
+        System.out.println(Q2b.failing);
 
     }
 
@@ -29,71 +29,67 @@ class Q2b {
         if (digits == null || digits.length() == 0) {
             return list;
         }
-        //初始对应所有的数字，为了直接对应2-9，新增了两个无效的字符串""
+        // 8 sets of "1234" is for the domain of 8 variables
         String[] numString = {"1234", "1234","1234", "1234","1234", "1234","1234", "1234"};
         StringBuilder temp = new StringBuilder();
-        //迭代处理
+        // pass the parameters to backtracking
         backTracking(digits, numString, 0, list, temp, new ArrayList<Character>());
         return list;
 
     }
 
-    //每次迭代获取一个字符串，所以会设计大量的字符串拼接，所以这里选择更为高效的 StringBuild
 
 
-    //比如digits如果为"23",num 为0，则str表示2对应的 abc
     public static void backTracking(String digits, String[] numString, int num, List<String> list, StringBuilder temp, ArrayList<Character> path) {
-        //遍历全部一次记录一次得到的字符串
+        // num is the depth of the iteration. If we reach a depth that is deep as the length of the input,
+        // it means we have got a complete path that is a solution for the CSP
         if (num == digits.length()) {
             list.add(temp.toString());
             return;
         }
-        //str 表示当前num对应的可使用字符串
+
+        //Using StringBuilder to save current assignment
         String str = numString[digits.charAt(num) - 'A'];
         path.add(digits.charAt(num));
 
 
         for (int i = 0; i < str.length(); i++) {
 
+            // check if the current variable with its current value satisfied the constraints
+
             if(checkConstraint(digits.charAt(num), str.charAt(i), temp, digits, path)){
                 temp.append(str.charAt(i));
                 backTracking(digits, numString, num + 1, list, temp, path);
                 temp.deleteCharAt(temp.length() - 1);
             } else {
-                Q2b.a++;
+
+                // if the current variable with its current value satisfied the constraints, we add a failing branch
+                Q2b.failing++;
 
             }
-
-
-
-
-            //c
-//            backTracking(digits, numString, num + 1, list, temp);
-            //剔除末尾的继续尝试
 
         }
     }
 
-    private static boolean checkConstraint(char currChar, char currCharValue, StringBuilder temp, String digits, ArrayList<Character> path) {
-        System.out.println("currChar: "+currChar);
-        System.out.println("temp: "+temp);
-        System.out.println("currChar - 'A': " + (currChar - 'A'));
+    private static boolean checkConstraint(char curVar, char curVarVal, StringBuilder temp, String digits, ArrayList<Character> path) {
+        System.out.println("current variable: "+curVar+ ", current variable value "+ curVarVal);
+        System.out.println("temporary path: "+temp);
 
 
-        if (currChar == 'H'){
-            return currCharValue != temp.charAt(0);
-        } else if (currChar == 'G'){
-            return currCharValue != temp.charAt(0);
-        } else if (currChar == 'E'){
-            return currCharValue != temp.charAt(1) - 2;
-        } else if (currChar == 'D'){
-            return currCharValue - 1> temp.charAt(3) && currCharValue != temp.charAt(1) && currCharValue >= temp.charAt(2) && currCharValue != temp.charAt(0);
-        } else if (currChar == 'C'){
-            return Math.abs(currCharValue - temp.charAt(2)) == 1&& (currCharValue - temp.charAt(1))%2 == 0&& currCharValue != temp.charAt(4) && currCharValue != temp.charAt(0);
-        } else if(currChar == 'A'){
-            return currCharValue >= temp.charAt(2) && currCharValue < temp.charAt(1);
-        } else if (currChar == 'B'){
-            return Math.abs(currCharValue - temp.charAt(0)) == 1;
+        if (curVar == 'H'){
+            return curVarVal != temp.charAt(0);
+        } else if (curVar == 'G'){
+            return curVarVal != temp.charAt(0) && curVarVal<temp.charAt(1);
+        } else if (curVar == 'D'){
+            return curVarVal != temp.charAt(1) && curVarVal >= temp.charAt(2) && curVarVal != temp.charAt(0);
+        } else if (curVar == 'C'){
+            return Math.abs(curVarVal - temp.charAt(2)) == 1&& (curVarVal - temp.charAt(1))%2 == 0&& curVarVal != temp.charAt(3) && curVarVal != temp.charAt(0);
+        } else if (curVar == 'E'){
+            return curVarVal != temp.charAt(1) - 2 && Math.abs(curVarVal - temp.charAt(0))%2 == 1 && curVarVal != temp.charAt(4) && curVarVal <= temp.charAt(3) - 1;
+        } else if(curVar == 'A'){
+            return curVarVal >= temp.charAt(2) && curVarVal < temp.charAt(1);
+        } else if (curVar == 'B'){
+            return Math.abs(curVarVal - temp.charAt(0)) == 1;
         }
 
         return true;
